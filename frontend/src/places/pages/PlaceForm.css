@@ -8,3 +8,10 @@
   border-radius: 6px;
   background: white;
 }
+
+.center {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
