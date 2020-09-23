@@ -4,6 +4,7 @@ const placesRoutes = require("./routes/places-routes");
 const usersRoutes = require("./routes/users-routes");
 const bodyParser = require("body-parser");
 const HttpError = require("./models/http-error");
+const mongoose = require("mongoose");
 
 app.use(bodyParser.json());
 app.use("/api/places", placesRoutes);
@@ -19,4 +20,10 @@ app.use((err, req, res, next) => {
   res.status(err.code || 500);
   res.json({ message: err.message || "An unknown error occured" });
 });
-app.listen(5000);
+
+mongoose
+  .connect(
+    "mongodb+srv://forderation:PY6qcP4vxByBcRkZ@cluster0.kwer4.gcp.mongodb.net/map_places?retryWrites=true&w=majority"
+  )
+  .then(() => app.listen(5000))
+  .catch((err) => console.log(err));

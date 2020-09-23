@@ -1,4 +1,4 @@
-const HttpError = require("./models/http-error");
+const HttpError = require("../models/http-error");
 
 const API_KEY = "AIzaSyCYdy06gEh15qVaEgjREle78GBCxq2BJ-s";
 const axios = require("axios");

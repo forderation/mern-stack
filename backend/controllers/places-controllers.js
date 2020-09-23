@@ -1,7 +1,9 @@
 const HttpError = require("../models/http-error");
 const { v4: uuidv4 } = require("uuid");
 const { validationResult } = require("express-validator");
-const getCoordsForAddress = require("../location");
+const getCoordsForAddress = require("../utils/location");
+const Place = require("../models/place");
+
 let DUMMY_PLACES = [
   {
     id: "p1",
@@ -31,52 +33,81 @@ let DUMMY_PLACES = [
   },
 ];
 
-const getPlaceById = (req, res, next) => {
+const getPlaceById = async (req, res, next) => {
   placeId = req.params.pid;
-  const place = DUMMY_PLACES.find((p) => p.id === placeId);
+  let place;
+
+  try {
+    place = await Place.findById(placeId);
+  } catch (err) {
+    const error = new HttpError(
+      "Oops :( Something error when fetch to the place",
+      500
+    );
+    return next(error);
+  }
+
   if (!place) {
     // sync codes
-    throw new HttpError("Could not find place with given id.", 404);
+    return next(new HttpError("Could not find place with given id.", 404));
   }
-  res.json({ place });
+  res.json({ place: place.toObject({ getters: true }) });
 };
 
-const getPlacesByUserId = (req, res, next) => {
+const getPlacesByUserId = async (req, res, next) => {
   userId = req.params.uid;
-  const places = DUMMY_PLACES.filter((p) => p.creator === userId);
-  if (places.length === 0) {
-    // async codes
-    return next(
-      new HttpError("Could not find places with given user id.", 404)
+  let places;
+  try {
+    // return array of object
+    places = await Place.find({ creator: userId });
+  } catch (err) {
+    const error = new HttpError(
+      "Oops :( Something error when fetch to the places",
+      500
     );
+    return next(error);
   }
-  res.json({ places });
+
+  if (places.length === 0) {
+    // sync codes
+    return next(new HttpError("Could not find place with given id.", 404));
+  }
+  res.json({ places: places.map((p) => p.toObject({ getters: true })) });
 };
 
-const createNewPlace = async(req, res, next) => {
+const createNewPlace = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
     next(new HttpError("Invalid inputs passed, please check your data", 422));
   }
 
-  const { title, description, address, creator } = req.body;
-  let coordinates;
-  try {
-    coordinates = await getCoordsForAddress(address);
-  } catch (error) {
-    return next(error);
-  }
+  const { title, description, coordinates, address, creator, image } = req.body;
 
-  const createdPlace = {
-    id: uuidv4(),
+  // GEOCODING API
+  // let coordinates;
+  // try {
+  //   coordinates = await getCoordsForAddress(address);
+  // } catch (error) {
+  //   return next(error);
+  // }
+
+  const createdPlace = new Place({
     title,
     description,
     location: coordinates,
     address,
+    image,
     creator,
-  };
-  DUMMY_PLACES.push(createdPlace);
+  });
+
+  try {
+    await createdPlace.save();
+  } catch (err) {
+    const error = new HttpError("Cannot create place, please try again !", 500);
+    return next(error);
+  }
+
   res.status(201).json({ place: createdPlace });
 };
 
