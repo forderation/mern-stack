@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import PlaceList from "../components/PlaceList";
 import { useHttpClient } from "../../shared/hooks/HttpHook";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
@@ -8,6 +8,7 @@ import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 const UserPlaces = () => {
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const userId = useParams().userId;
+  const history = useHistory();
   const [userPlaces, setUserPlaces] = useState();
 
   useEffect(() => {
@@ -27,15 +28,22 @@ const UserPlaces = () => {
     setUserPlaces((places) => places.filter((p) => p.id !== placeId));
   };
 
+  const modalHttpError = () => {
+    clearError();
+    history.push("/");
+  };
+
   return (
     <React.Fragment>
-      <ErrorModal error={error} onClear={clearError} />
+      <ErrorModal error={error} onClear={modalHttpError} />
       {isLoading && (
         <div className="center">
           <LoadingSpinner asOverlay />
         </div>
       )}
-      {!isLoading && userPlaces && <PlaceList items={userPlaces} onDelete={deletePlace} />}
+      {!isLoading && userPlaces && (
+        <PlaceList items={userPlaces} onDelete={deletePlace} />
+      )}
     </React.Fragment>
   );
 };

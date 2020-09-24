@@ -1,6 +1,7 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/auth-context";
 import Button from "../../shared/components/FormElements/Button";
+import ImageUpload from "../../shared/components/FormElements/ImageUpload";
 import Input from "../../shared/components/FormElements/Input";
 import Card from "../../shared/components/UIElements/Card";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
@@ -47,6 +48,10 @@ const Authenticate = (props) => {
             value: "",
             isValid: false,
           },
+          image: {
+            value: null,
+            isValid: false,
+          },
         },
         false
       );
@@ -72,17 +77,15 @@ const Authenticate = (props) => {
       } catch (err) {}
     } else {
       try {
+        const formData = new FormData();
+        formData.append("name", formState.inputs.name.value);
+        formData.append("email", formState.inputs.email.value);
+        formData.append("password", formState.inputs.password.value);
+        formData.append("image", formState.inputs.image.value);
         const responseData = await sendRequest(
           "http://localhost:5000/api/users/signup",
           "POST",
-          JSON.stringify({
-            name: formState.inputs.name.value,
-            email: formState.inputs.email.value,
-            password: formState.inputs.password.value,
-          }),
-          {
-            "Content-Type": "application/json",
-          }
+          formData
         );
         authContext.login(responseData.user.id);
       } catch (err) {}
@@ -101,16 +104,24 @@ const Authenticate = (props) => {
         <hr />
         <form onSubmit={submitFormHandler}>
           {!isLoginMode && (
-            <Input
-              element="input"
-              id="name"
-              type="text"
-              label="Your Name"
-              validators={[VALIDATOR_REQUIRE()]}
-              placeholder="Enter your name here"
-              errorText="Please enter a name"
-              onInput={inputHandler}
-            ></Input>
+            <React.Fragment>
+              <Input
+                element="input"
+                id="name"
+                type="text"
+                label="Your Name"
+                validators={[VALIDATOR_REQUIRE()]}
+                placeholder="Enter your name here"
+                errorText="Please enter a name"
+                onInput={inputHandler}
+              ></Input>
+              <ImageUpload
+                id="image"
+                center
+                errorText={"Please input a valid image"}
+                onInput={inputHandler}
+              />
+            </React.Fragment>
           )}
           <Input
             id="email"

@@ -9,6 +9,7 @@ import { VALIDATOR_MINLENGTH, VALIDATOR_REQUIRE } from "../../utils/validators";
 import { useHttpClient } from "../../shared/hooks/HttpHook";
 import "./PlaceForm.css";
 import { useHistory } from "react-router-dom";
+import ImageUpload from "../../shared/components/FormElements/ImageUpload";
 
 const NewPlace = () => {
   const authContext = useContext(AuthContext);
@@ -18,6 +19,10 @@ const NewPlace = () => {
     {
       title: {
         value: "",
+        isValid: false,
+      },
+      image: {
+        value: null,
         isValid: false,
       },
       description: {
@@ -34,19 +39,13 @@ const NewPlace = () => {
     console.log(authContext.userId);
     const { title, description, address } = formState.inputs;
     try {
-      const responseData = await sendRequest(
-        "http://localhost:5000/api/places",
-        "POST",
-        JSON.stringify({
-          title: title.value,
-          description: description.value,
-          address: address.value,
-          creator: authContext.userId,
-        }),
-        {
-          "Content-Type": "application/json",
-        }
-      );
+      const formData = new FormData();
+      formData.append("title", title.value);
+      formData.append("address", address.value);
+      formData.append("description", description.value);
+      formData.append("image", formState.inputs.image.value);
+      formData.append("creator", authContext.userId);
+      await sendRequest("http://localhost:5000/api/places", "POST", formData);
       history.push("/");
     } catch (error) {}
     console.log(formState.inputs);
@@ -65,6 +64,11 @@ const NewPlace = () => {
           onInput={inputHandler}
           validators={[VALIDATOR_REQUIRE()]}
           errorText="Please enter a valid title."
+        />
+        <ImageUpload
+          id="image"
+          onInput={inputHandler}
+          errorText={"Please input a valid image"}
         />
         <Input
           id="description"
