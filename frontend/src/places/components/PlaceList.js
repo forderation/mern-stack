@@ -1,7 +1,6 @@
 import React from "react";
 import Card from "../../shared/components/UIElements/Card";
 import PlaceItem from "./PlaceItem";
-import { Link } from "react-router-dom";
 import "./PlaceList.css";
 import Button from "../../shared/components/FormElements/Button";
 
@@ -23,12 +22,13 @@ const PlaceList = (props) => {
         <PlaceItem
           key={place.id}
           id={place.id}
-          image={place.imageUrl}
+          image={place.image}
           description={place.description}
           title={place.title}
           address={place.address}
           creator={place.creator}
           coordinates={place.location}
+          deletePlace={props.onDelete}
         />
       ))}
     </ul>

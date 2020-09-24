@@ -6,9 +6,15 @@ import Modal from "../../shared/components/UIElements/Modal";
 import Map from "../../shared/components/UIElements/Map";
 import "./PlaceItem.css";
 import { AuthContext } from "../../context/auth-context";
+import { useHttpClient } from "../../shared/hooks/HttpHook";
+import ErrorModal from "../../shared/components/UIElements/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
+import { useHistory } from "react-router-dom";
 
 const PlaceItem = (props) => {
   const [showMap, setShowMap] = React.useState(false);
+  const { loadingState, error, sendRequest, clearError } = useHttpClient();
+  const history = useHistory();
   const authContext = useContext(AuthContext);
 
   const [showConfirmModal, setShowConfirmModal] = React.useState(false);
@@ -16,11 +22,20 @@ const PlaceItem = (props) => {
   const setMapHandler = () => setShowMap((mapPrev) => !mapPrev);
   const setConfirmModalHandler = () =>
     setShowConfirmModal((prevModal) => !prevModal);
-  const deleteConfirmHandler = () => {
-    console.log("Deleting ... ");
+  const deleteConfirmHandler = async () => {
+    setConfirmModalHandler();
+    try {
+      await sendRequest(
+        `http://localhost:5000/api/places/${props.id}`,
+        "DELETE"
+      );
+      props.deletePlace(props.id);
+    } catch (err) {}
   };
   return (
     <React.Fragment>
+      <ErrorModal error={error} onClear={clearError} />
+      {loadingState && <LoadingSpinner asOverlay />}
       <Modal
         show={showMap}
         onClick={setMapHandler}
@@ -44,9 +59,11 @@ const PlaceItem = (props) => {
             <Button inverse onClick={setConfirmModalHandler}>
               Cancel
             </Button>
-            <Button danger onClick={deleteConfirmHandler}>
-              Delete
-            </Button>
+            {!loadingState && (
+              <Button danger onClick={deleteConfirmHandler}>
+                Delete
+              </Button>
+            )}
           </React.Fragment>
         }
       >
@@ -69,7 +86,7 @@ const PlaceItem = (props) => {
             <Button inverse onClick={setMapHandler}>
               VIEW ON MAP
             </Button>
-            {authContext.isLoggedIn && (
+            {authContext.isLoggedIn && authContext.userId == props.creator && (
               <React.Fragment>
                 <Button to={`/place/${props.id}`}>EDIT</Button>
                 <Button danger onClick={setConfirmModalHandler}>
