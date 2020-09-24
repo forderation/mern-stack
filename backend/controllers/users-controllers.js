@@ -46,9 +46,15 @@ const userSignUp = async (req, res, next) => {
 
   let newUser;
   try {
-    newUser = await new User({ name, password, email, image, places: [] }).save();
+    newUser = await new User({
+      name,
+      password,
+      email,
+      image : "https://cdn.auth0.com/blog/illustrations/react.png",
+      places: [],
+    }).save();
   } catch (error) {
-    const err = new HttpError("Something wrong when create user", 500);
+    const err = new HttpError(`Something wrong when create user ${error}`, 500);
     return next(err);
   }
 
@@ -69,7 +75,7 @@ const userSignIn = async (req, res, next) => {
 
   if (!exisingUser) {
     const error = new HttpError(
-      "Logging in failed !, Email or password is wrong!",
+      "Logging in failed, Email or password is wrong!",
       422
     );
     return next(error);

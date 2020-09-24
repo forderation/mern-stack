@@ -58,7 +58,7 @@ const createNewPlace = async (req, res, next) => {
     next(new HttpError("Invalid inputs passed, please check your data", 422));
   }
 
-  const { title, description, coordinates, address, creator, image } = req.body;
+  const { title, description, address, creator } = req.body;
 
   // GEOCODING API
   // let coordinates;
@@ -84,22 +84,22 @@ const createNewPlace = async (req, res, next) => {
   const createdPlace = new Place({
     title,
     description,
-    location: coordinates,
+    location: { lat: -7.9200051, lng: 112.5975281 },
     address,
-    image,
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/3/3c/Vue_de_nuit_de_la_Place_Stanislas_%C3%A0_Nancy.jpg",
     creator,
   });
 
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    const configSess = { session: sess };
-    await createdPlace.save(configSess);
+    await createdPlace.save({ session: sess });
     user.places.push(createdPlace);
-    await user.save(configSess);
+    await user.save({ session: sess });
     await sess.commitTransaction();
   } catch (err) {
-    const error = new HttpError("Cannot create place, please try again !", 500);
+    const error = new HttpError(`Cannot create place, please try again ! ${err}`, 500);
     return next(error);
   }
 
