@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import PlaceList from "../components/PlaceList";
 import { useHttpClient } from "../../shared/hooks/HttpHook";
@@ -22,7 +22,7 @@ const UserPlaces = () => {
       } catch (err) {}
     };
     fetchUserPlaces();
-  }, [sendRequest]);
+  }, [sendRequest, userId]);
 
   const deletePlace = (placeId) => {
     setUserPlaces((places) => places.filter((p) => p.id !== placeId));
@@ -35,12 +35,12 @@ const UserPlaces = () => {
 
   return (
     <React.Fragment>
-      <ErrorModal error={error} onClear={modalHttpError} />
-      {isLoading && (
+      {!userPlaces && (
         <div className="center">
           <LoadingSpinner asOverlay />
         </div>
       )}
+      <ErrorModal error={error} onClear={modalHttpError} />
       {!isLoading && userPlaces && (
         <PlaceList items={userPlaces} onDelete={deletePlace} />
       )}

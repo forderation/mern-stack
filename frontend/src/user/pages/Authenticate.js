@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { AuthContext } from "../../context/auth-context";
 import Button from "../../shared/components/FormElements/Button";
 import ImageUpload from "../../shared/components/FormElements/ImageUpload";
@@ -14,7 +14,7 @@ import {
   VALIDATOR_REQUIRE,
 } from "../../utils/validators";
 import "./Authenticate.css";
-const Authenticate = (props) => {
+const Authenticate = () => {
   const authContext = useContext(AuthContext);
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const [isLoginMode, setLoginMode] = useState(true);
@@ -73,7 +73,7 @@ const Authenticate = (props) => {
             "Content-Type": "application/json",
           }
         );
-        authContext.login(responseData.user.id);
+        authContext.login(responseData.userId, responseData.token);
       } catch (err) {}
     } else {
       try {
@@ -87,7 +87,7 @@ const Authenticate = (props) => {
           "POST",
           formData
         );
-        authContext.login(responseData.user.id);
+        authContext.login(responseData.userId, responseData.token);
       } catch (err) {}
     }
   };

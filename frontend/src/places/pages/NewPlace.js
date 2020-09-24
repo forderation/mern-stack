@@ -44,8 +44,9 @@ const NewPlace = () => {
       formData.append("address", address.value);
       formData.append("description", description.value);
       formData.append("image", formState.inputs.image.value);
-      formData.append("creator", authContext.userId);
-      await sendRequest("http://localhost:5000/api/places", "POST", formData);
+      await sendRequest("http://localhost:5000/api/places", "POST", formData, {
+        Authorization: "Bearer " + authContext.token,
+      });
       history.push("/");
     } catch (error) {}
     console.log(formState.inputs);

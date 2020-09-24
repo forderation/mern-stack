@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -12,20 +12,12 @@ import UserPlaces from "./places/pages/UserPlaces";
 import UpdatePlace from "./places/pages/UpdatePlace";
 import Authenticate from "./user/pages/Authenticate";
 import { AuthContext } from "./context/auth-context";
+import { useAuth } from "./shared/hooks/AuthHook";
 
 function App() {
-  const [isLoginMode, setIsLoggedIn] = useState(false);
-  const [userId, setUserId] = useState();
-  const login = useCallback((uid) => {
-    setUserId(uid);
-    setIsLoggedIn(true);
-  }, []);
-  const logout = useCallback(() => {
-    setUserId(null);
-    setIsLoggedIn(false);
-  }, []);
+  const { token, login, logout, userId } = useAuth();
   let routes;
-  if (isLoginMode) {
+  if (token) {
     routes = (
       <React.Fragment>
         <Route path="/" exact>
@@ -65,7 +57,8 @@ function App() {
   return (
     <AuthContext.Provider
       value={{
-        isLoggedIn: isLoginMode,
+        isLoggedIn: !!token,
+        token: token,
         userId: userId,
         login: login,
         logout: logout,
