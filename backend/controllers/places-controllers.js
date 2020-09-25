@@ -4,6 +4,8 @@ const getCoordsForAddress = require("../utils/location");
 const mongoose = require("mongoose");
 const User = require("../models/user");
 const Place = require("../models/place");
+const fs = require("fs");
+const path = require("path");
 
 const getPlaceById = async (req, res, next) => {
   placeId = req.params.pid;
@@ -58,7 +60,7 @@ const createNewPlace = async (req, res, next) => {
     next(new HttpError("Invalid inputs passed, please check your data", 422));
   }
 
-  const { title, description, address, creator } = req.body;
+  const { title, description, address } = req.body;
 
   // GEOCODING API
   // let coordinates;
@@ -69,6 +71,7 @@ const createNewPlace = async (req, res, next) => {
   // }
 
   let user;
+  const creator = req.userData.userId;
   try {
     user = await User.findById(creator);
   } catch (err) {
@@ -86,8 +89,7 @@ const createNewPlace = async (req, res, next) => {
     description,
     location: { lat: -7.9200051, lng: 112.5975281 },
     address,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/3/3c/Vue_de_nuit_de_la_Place_Stanislas_%C3%A0_Nancy.jpg",
+    image: req.file.path,
     creator,
   });
 
@@ -99,7 +101,10 @@ const createNewPlace = async (req, res, next) => {
     await user.save({ session: sess });
     await sess.commitTransaction();
   } catch (err) {
-    const error = new HttpError(`Cannot create place, please try again ! ${err}`, 500);
+    const error = new HttpError(
+      `Cannot create place, please try again ! ${err}`,
+      500
+    );
     return next(error);
   }
 
@@ -122,6 +127,15 @@ const updateExistingPlace = async (req, res, next) => {
     place = await Place.findById(placeId);
   } catch (err) {
     const error = new HttpError("Couldn't update place, id doesn't exist", 500);
+    return next(error);
+  }
+
+  // convert to string because by default creator is object that created by mongoose
+  if (place.creator.toString() !== req.userData.userId) {
+    console.log(
+      `Auth Failed ${place.creator.toString()} != ${req.userData.userId}`
+    );
+    const error = new HttpError("You are not allowed to edit this place", 401);
     return next(error);
   }
 
@@ -156,6 +170,17 @@ const deleteExistingPlace = async (req, res, next) => {
     return next(error);
   }
 
+  if (place.creator.id !== req.userData.userId) {
+    console.log(
+      `Auth Failed ${place.creator.toString()} != ${req.userData.userId}`
+    );
+    const error = new HttpError(
+      "You are not allowed to delete this place",
+      401
+    );
+    return next(error);
+  }
+
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
@@ -164,6 +189,7 @@ const deleteExistingPlace = async (req, res, next) => {
     place.creator.places.pull(place);
     await place.creator.save(configSess);
     await sess.commitTransaction();
+    fs.unlink(path.join(place.image), (err) => console.log(err));
   } catch {
     const error = new HttpError(
       "Couldn't delete place, something is wrong",

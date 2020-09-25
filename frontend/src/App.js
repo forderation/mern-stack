@@ -1,25 +1,35 @@
-import React from "react";
+import React, { Suspense } from "react";
 import {
   BrowserRouter as Router,
   Route,
   Redirect,
   Switch,
 } from "react-router-dom";
-import Users from "./user/pages/Users";
-import NewPlace from "./places/pages/NewPlace";
-import MainNavigation from "./shared/components/Navigation/MainNavigation";
-import UserPlaces from "./places/pages/UserPlaces";
-import UpdatePlace from "./places/pages/UpdatePlace";
-import Authenticate from "./user/pages/Authenticate";
+// import Users from "./user/pages/Users";
+// import NewPlace from "./places/pages/NewPlace";
+// import MainNavigation from "./shared/components/Navigation/MainNavigation";
+// import UserPlaces from "./places/pages/UserPlaces";
+// import UpdatePlace from "./places/pages/UpdatePlace";
+// import Authenticate from "./user/pages/Authenticate";
+import LoadingSpinner from "./shared/components/UIElements/LoadingSpinner";
 import { AuthContext } from "./context/auth-context";
 import { useAuth } from "./shared/hooks/AuthHook";
+
+const Users = React.lazy(() => import("./user/pages/Users"));
+const NewPlace = React.lazy(() => import("./places/pages/NewPlace"));
+const MainNavigation = React.lazy(() =>
+  import("./shared/components/Navigation/MainNavigation")
+);
+const UserPlaces = React.lazy(() => import("./places/pages/UserPlaces"));
+const UpdatePlace = React.lazy(() => import("./places/pages/UpdatePlace"));
+const Authenticate = React.lazy(() => import("./user/pages/Authenticate"));
 
 function App() {
   const { token, login, logout, userId } = useAuth();
   let routes;
   if (token) {
     routes = (
-      <React.Fragment>
+      <Switch>
         <Route path="/" exact>
           <Users />
         </Route>
@@ -33,11 +43,11 @@ function App() {
           <UpdatePlace />
         </Route>
         <Redirect to="/" />
-      </React.Fragment>
+      </Switch>
     );
   } else {
     routes = (
-      <React.Fragment>
+      <Switch>
         <Route path="/" exact>
           <Users />
         </Route>
@@ -51,7 +61,7 @@ function App() {
           <UpdatePlace />
         </Route>
         <Redirect to="/auth" />
-      </React.Fragment>
+      </Switch>
     );
   }
   return (
@@ -65,10 +75,17 @@ function App() {
       }}
     >
       <Router>
-        <MainNavigation />
-        <main>
-          <Switch>({routes})</Switch>
-        </main>
+        {" "}
+        <Suspense
+          fallback={
+            <div className="center">
+              <LoadingSpinner />
+            </div>
+          }
+        >
+          <MainNavigation />
+          <main>{routes}</main>
+        </Suspense>
       </Router>
     </AuthContext.Provider>
   );

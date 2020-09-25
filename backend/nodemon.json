@@ -1,0 +1,9 @@
+{
+  "env": {
+    "DB_USER": "forderation",
+    "DB_PASSWORD": "PY6qcP4vxByBcRkZ",
+    "DB_NAME": "mern",
+    "GOOGLE_API_KEY": "...",
+    "JWT_KEY": "private+key-mern"
+  }
+}

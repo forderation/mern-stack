@@ -5,8 +5,11 @@ const usersRoutes = require("./routes/users-routes");
 const bodyParser = require("body-parser");
 const HttpError = require("./models/http-error");
 const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 
 app.use(bodyParser.json());
+app.use("/upload/images/", express.static(path.join("upload", "images")));
 app.use((req, res, next) => {
   // Allowing CORS if has different port
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -24,6 +27,11 @@ app.use((err, req, res) => {
   throw error;
 });
 app.use((err, req, res, next) => {
+  if (req.file) {
+    fs.unlink(req.file.path, (err) => {
+      console.log(err);
+    });
+  }
   if (res.headerSent) {
     return next(err);
   }
@@ -33,7 +41,7 @@ app.use((err, req, res, next) => {
 
 mongoose
   .connect(
-    "mongodb+srv://forderation:PY6qcP4vxByBcRkZ@cluster0.kwer4.gcp.mongodb.net/mern?retryWrites=true&w=majority"
+    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.kwer4.gcp.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
   )
   .then(() => app.listen(5000))
   .catch((err) => console.log(err));
