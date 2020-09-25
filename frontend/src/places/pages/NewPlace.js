@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { AuthContext } from "../../context/auth-context";
 import Button from "../../shared/components/FormElements/Button";
 import Input from "../../shared/components/FormElements/Input";
@@ -16,6 +16,8 @@ const NewPlace = () => {
   const authContext = useContext(AuthContext);
   const history = useHistory();
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
+  // default static coordinates future add geolocation
+  const [coords, setCoords] = useState({ lat: -7.9089162, lng: 112.6174301 });
   const [formState, inputHandler] = useForm(
     {
       title: {
@@ -34,6 +36,10 @@ const NewPlace = () => {
     false
   );
 
+  const coordsHandler = (position) => {
+    setCoords(position);
+  };
+
   const submitHandler = async (event) => {
     // send data to server
     event.preventDefault();
@@ -45,6 +51,7 @@ const NewPlace = () => {
       formData.append("address", address.value);
       formData.append("description", description.value);
       formData.append("image", formState.inputs.image.value);
+      formData.append("location", JSON.stringify(coords));
       await sendRequest(
         `${process.env.REACT_APP_BACKEND_URL}/places`,
         "POST",
@@ -79,8 +86,9 @@ const NewPlace = () => {
         />
         <PickMap
           id="pick-maps"
-          center={{ lat: -7.9089162, lng: 112.6174301 }}
+          center={coords}
           zoom={1}
+          onCoords={coordsHandler}
         />
         <Input
           id="description"

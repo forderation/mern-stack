@@ -10,16 +10,17 @@ const PickMap = (props) => {
     })
   );
 
-  console.log(props);
-
   const [map, setMapState] = useState();
 
   const markerHandler = useCallback((mapsMouseEvent) => {
-    const lat = mapsMouseEvent.latLng.lat();
-    const lng = mapsMouseEvent.latLng.lng();
+    const position = {
+      lat: mapsMouseEvent.latLng.lat(),
+      lng: mapsMouseEvent.latLng.lng(),
+    };
+    props.onCoords(position);
     setMarker(
       new window.google.maps.Marker({
-        position: { lat, lng },
+        position,
       })
     );
     marker.setMap(map);
