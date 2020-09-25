@@ -10,8 +10,12 @@ const path = require("path");
 
 app.use(bodyParser.json());
 app.use("/upload/images/", express.static(path.join("upload", "images")));
+
+// using include react app on public folder
+app.use(express.static(path.join("public")));
+
 app.use((req, res, next) => {
-  // Allowing CORS if has different port
+  // Allowing CORS if has different port and domain server
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
@@ -22,16 +26,26 @@ app.use((req, res, next) => {
 });
 app.use("/api/places", placesRoutes);
 app.use("/api/users", usersRoutes);
+
+// if no one routes are correct redirect on react index apps
+app.use((req, res, next) => {
+  res.sendFile(path.resolve(__dirname, "public", "index.html"));
+});
+
+// use this if our node on REST api mode
 app.use((err, req, res) => {
   const error = new HttpError("Couldn't find this route", 404);
   throw error;
 });
+
 app.use((err, req, res, next) => {
+  // unlink upload images where fails to validate
   if (req.file) {
     fs.unlink(req.file.path, (err) => {
       console.log(err);
     });
   }
+  // if header os response has error
   if (res.headerSent) {
     return next(err);
   }
@@ -43,5 +57,5 @@ mongoose
   .connect(
     `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.kwer4.gcp.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
   )
-  .then(() => app.listen(5000))
+  .then(() => app.listen(process.env.PORT || 5000))
   .catch((err) => console.log(err));
