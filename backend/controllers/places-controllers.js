@@ -60,7 +60,7 @@ const createNewPlace = async (req, res, next) => {
     next(new HttpError("Invalid inputs passed, please check your data", 422));
   }
 
-  const { title, description, address } = req.body;
+  const { title, description, address, location } = req.body;
 
   // GEOCODING API
   // let coordinates;
@@ -87,7 +87,7 @@ const createNewPlace = async (req, res, next) => {
   const createdPlace = new Place({
     title,
     description,
-    location: { lat: -7.9200051, lng: 112.5975281 },
+    location: JSON.parse(location),
     address,
     image: req.file.path,
     creator,

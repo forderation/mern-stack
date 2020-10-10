@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { AuthContext } from "../../context/auth-context";
 import Button from "../../shared/components/FormElements/Button";
 import Input from "../../shared/components/FormElements/Input";
@@ -10,11 +10,14 @@ import { useHttpClient } from "../../shared/hooks/HttpHook";
 import "./PlaceForm.css";
 import { useHistory } from "react-router-dom";
 import ImageUpload from "../../shared/components/FormElements/ImageUpload";
+import PickMap from "../../shared/components/FormElements/PickMap";
 
 const NewPlace = () => {
   const authContext = useContext(AuthContext);
   const history = useHistory();
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
+  // default static coordinates future add geolocation
+  const [coords, setCoords] = useState({ lat: -7.9089162, lng: 112.6174301 });
   const [formState, inputHandler] = useForm(
     {
       title: {
@@ -33,6 +36,10 @@ const NewPlace = () => {
     false
   );
 
+  const coordsHandler = (position) => {
+    setCoords(position);
+  };
+
   const submitHandler = async (event) => {
     // send data to server
     event.preventDefault();
@@ -44,9 +51,15 @@ const NewPlace = () => {
       formData.append("address", address.value);
       formData.append("description", description.value);
       formData.append("image", formState.inputs.image.value);
-      await sendRequest(`${process.env.REACT_APP_BACKEND_URL}/places`, "POST", formData, {
-        Authorization: "Bearer " + authContext.token,
-      });
+      formData.append("location", JSON.stringify(coords));
+      await sendRequest(
+        `${process.env.REACT_APP_BACKEND_URL}/places`,
+        "POST",
+        formData,
+        {
+          Authorization: "Bearer " + authContext.token,
+        }
+      );
       history.push("/");
     } catch (error) {}
     console.log(formState.inputs);
@@ -70,6 +83,12 @@ const NewPlace = () => {
           id="image"
           onInput={inputHandler}
           errorText={"Please input a valid image"}
+        />
+        <PickMap
+          id="pick-maps"
+          center={coords}
+          zoom={1}
+          onCoords={coordsHandler}
         />
         <Input
           id="description"

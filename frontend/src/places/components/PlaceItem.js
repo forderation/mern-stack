@@ -91,7 +91,7 @@ const PlaceItem = (props) => {
             <Button inverse onClick={setMapHandler}>
               VIEW ON MAP
             </Button>
-            {authContext.isLoggedIn && authContext.userId == props.creator && (
+            {authContext.isLoggedIn && authContext.userId === props.creator && (
               <React.Fragment>
                 <Button to={`/place/${props.id}`}>EDIT</Button>
                 <Button danger onClick={setConfirmModalHandler}>
