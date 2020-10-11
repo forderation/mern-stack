@@ -12,11 +12,7 @@ app.use(bodyParser.json());
 app.use("/upload/images/", express.static(path.join("upload", "images")));
 
 // using include react app on public folder
-<<<<<<< HEAD
-app.use(express.static(path.join("public")));
-=======
 // app.use(express.static(path.join("public")));
->>>>>>> development
 
 app.use((req, res, next) => {
   // Allowing CORS if has different port and domain server
